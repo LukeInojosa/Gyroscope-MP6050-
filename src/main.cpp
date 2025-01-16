@@ -28,7 +28,11 @@ void canReadGiroscopy(){
 // Determina os Offsets iniciais do giroscópio
 bool calibrateGiroscopy(){
     if(!_activeIMU) return false;
-    
+    while(true){
+        for(int i = 0;i<100;i++){
+            
+        }
+    }
 }
 
 double _DeltaAngle;
