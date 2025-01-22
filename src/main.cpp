@@ -105,6 +105,8 @@ double readGiroscopy(){
     // atualiza deslocamento do angulo 
     _angle += _DeltaAngle*time_seconds;
 
+    // retorna a contagem do timer
+    timerGiroscopy.start();
 }
 
 int main(void){
@@ -120,10 +122,7 @@ int main(void){
         if(_isCalibrateGiroscopy && _canReadGiroscopy){
             // lê giroscópio
             readGiroscopy();
-
-            timerGiroscopy.start();
             _canReadGiroscopy = false;
-
         }
     }
 }
