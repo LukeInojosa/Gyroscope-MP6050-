@@ -2,6 +2,9 @@
 #include "mbed.h"
 #include "MPU6050.h"
 #include <chrono>
+#include <cmath>
+#include <thread>
+
 
 # define M_PI 3.14159265358979323846	/* pi */
 
@@ -25,13 +28,57 @@ void canReadGiroscopy(){
     else  _canReadGiroscopy = true;
 }
 
+//Lê os registradores do giroscópio e já acrescente o offset
+void readGyro(double* gyroReadings){
+    _MPU.readGyro(gyroReadings);
+    gyroReadings[0] -= _gyroOffset[0];
+    gyroReadings[1] -= _gyroOffset[1];
+    gyroReadings[2] -= _gyroOffset[2];
+}
+
 // Determina os Offsets iniciais do giroscópio
-bool calibrateGiroscopy(){
+bool calibrateGiroscopy(int num_samples, int time_between_samples, double treshold){
     if(!_activeIMU) return false;
-    while(true){
-        for(int i = 0;i<100;i++){
+
+    double gyro[3] = {0, 0, 0};
+    double mean[3] = {0, 0, 0};
+    int ready = 0;
+
+    while(ready < 3){
+        ready = 0;
+
+        mean[0] = 0;
+        mean[1] = 0;
+        mean[2] = 0;
+
+        // lê num_samples amostras do giroscópio
+        for(int i = 0;i<num_samples;i++){
+
+            // lê informação do giroscópio , já retirando o offset
+            readGyro(gyro);
             
+            // as leituras são acumuladas
+            mean[0] += gyro[0];
+            mean[1] += gyro[1];
+            mean[2] += gyro[2];
+
+            // este intervalo é dado para que as leituras não sejam repetidas
+            ThisThread::sleep_for(chrono::milliseconds(time_between_samples));
         }
+
+        // é retirada as médias das leituras
+        mean[0] /= num_samples;
+        mean[1] /= num_samples;
+        mean[2] /= num_samples;
+
+        // se a média da leitura não estiver abaixo do limite aceitável
+        // então damos um pequeno incremento no offset do giroscópio
+        if(fabs(mean[0]) < treshold ) ready += 1;
+        else _gyroOffset[0] + mean[0]/(treshold+1);
+        if(fabs(mean[1]) < treshold ) ready += 1;
+        else _gyroOffset[1] + mean[1]/(treshold+1);
+        if(fabs(mean[2]) < treshold ) ready += 1;
+        else _gyroOffset[2] + mean[2]/(treshold+1);
     }
 }
 
@@ -43,9 +90,10 @@ double _angle;
 // angulo atual do giroscópio: _angle (rad)
 double readGiroscopy(){
 
-    // realiza a leitura do giroscópio
     double gyro[3] = {0, 0, 0};
-    _MPU.readGyro(gyro);
+
+    // realiza a leitura do giroscópio
+    readGyro(gyro);
 
     // converte velocidade angular de grau/s para rad/s 
     _DeltaAngle = (gyro[2] - _gyroOffset[2])*(M_PI/180);
@@ -61,7 +109,7 @@ double readGiroscopy(){
 
 int main(void){
     //calibra os offsets do giroscópio 
-    bool _isCalibrateGiroscopy = calibrateGiroscopy();
+    bool _isCalibrateGiroscopy = calibrateGiroscopy(100,2,0.2);
 
     //determinar periodos fixos para realizar a leitura do giroscópio
     tikerGiroscopy.attach(&canReadGiroscopy, _periodToReadGiroscopy);
