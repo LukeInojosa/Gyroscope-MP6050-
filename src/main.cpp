@@ -8,7 +8,7 @@
 
 # define M_PI 3.14159265358979323846	/* pi */
 
-Ticker tikerGiroscopy;
+Ticker tikerGiroscopy;\
 Timer timerGiroscopy;
 
 bool _canReadGiroscopy = false; // flag que controla a leitura do giroscópio
@@ -133,7 +133,7 @@ int main(void){
     while(true){
         if(_isCalibrateGiroscopy && _canReadGiroscopy){
             // lê giroscópio
-            readGiroscopy();
+            readGiroscopy(3);
             _canReadGiroscopy = false;
         }
     }
