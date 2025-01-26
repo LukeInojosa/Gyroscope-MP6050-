@@ -209,14 +209,7 @@ void MPU6050::readGyroRaw(int16_t* gyroReadings) {
 
   char GYRO_OUT_buffer[6];
 
-  // Optimization of Read
   multiByteRead(GYRO_XOUT_H_REG, GYRO_OUT_buffer, 6);
-  // GYRO_OUT_buffer[0] = SingleByteRead(GYRO_XOUT_H_REG);
-  // GYRO_OUT_buffer[1] = SingleByteRead(GYRO_XOUT_L_REG);
-  // GYRO_OUT_buffer[2] = SingleByteRead(GYRO_YOUT_H_REG);
-  // GYRO_OUT_buffer[3] = SingleByteRead(GYRO_YOUT_L_REG);
-  // GYRO_OUT_buffer[4] = SingleByteRead(GYRO_ZOUT_H_REG);
-  // GYRO_OUT_buffer[5] = SingleByteRead(GYRO_ZOUT_L_REG);
 
   gyroReadings[0] = (int) GYRO_OUT_buffer[0] << 8 | (int) GYRO_OUT_buffer[1];
   gyroReadings[1] = (int) GYRO_OUT_buffer[2] << 8 | (int) GYRO_OUT_buffer[3];
