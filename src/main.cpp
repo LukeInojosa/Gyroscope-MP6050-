@@ -20,7 +20,7 @@ bool _activeIMU = false; // indica se a placa está ativa com sucesso
 #define MPU_SDA PF_0 // I2C
 #define MPU_SCL PF_1 // I2C
 MPU6050 _MPU(MPU_SDA, MPU_SCL);
-bool _activeIMU =_MPU.initialize();
+bool _activeIMU;
 double _gyroOffset[3] = {0,0,0};
 
 void canReadGiroscopy(){
@@ -88,15 +88,20 @@ double _angle;
 // Realiza a leitura do giroscópio e atualiza:
 // velocidades: _Dangle (rad/s)
 // angulo atual do giroscópio: _angle (rad)
-double readGiroscopy(){
+double readGiroscopy(int n_mean){
 
     double gyro[3] = {0, 0, 0};
+    double out = 0;
 
     // realiza a leitura do giroscópio
-    readGyro(gyro);
-
+    for (int i=0; i< n_mean; i++){
+        readGyro(gyro);
+        out += gyro[2];
+    }
+    out /= n_mean;
+    
     // converte velocidade angular de grau/s para rad/s 
-    _DeltaAngle = (gyro[2] - _gyroOffset[2])*(M_PI/180);
+    _DeltaAngle = out*(M_PI/180);
 
      // calcula tempo decorrido desde a ultima atualização do ângulo
     timerGiroscopy.stop();
@@ -107,11 +112,18 @@ double readGiroscopy(){
 
     // retorna a contagem do timer
     timerGiroscopy.start();
+
 }
 
 int main(void){
+
+    while(!_activeIMU){
+        ThisThread::sleep_for(chrono::milliseconds(10));
+        _activeIMU = _MPU.initialize();
+    }
+    
     //calibra os offsets do giroscópio 
-    bool _isCalibrateGiroscopy = calibrateGiroscopy(100,2,0.2);
+    bool _isCalibrateGiroscopy = calibrateGiroscopy(100,5,0.2);
 
     //determinar periodos fixos para realizar a leitura do giroscópio
     tikerGiroscopy.attach(&canReadGiroscopy, _periodToReadGiroscopy);
