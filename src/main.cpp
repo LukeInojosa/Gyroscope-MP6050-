@@ -88,7 +88,7 @@ double _angle = 0;
 // Realiza a leitura do giroscópio e atualiza:
 // velocidades: _Dangle (rad/s)
 // angulo atual do giroscópio: _angle (rad)
-double readGiroscopy(int n_mean){
+void readGiroscopy(int n_mean){
 
     double gyro[3] = {0, 0, 0};
     double out = 0;
@@ -104,7 +104,6 @@ double readGiroscopy(int n_mean){
     _DeltaAngle = out*(M_PI/180);
 
      // calcula tempo decorrido desde a ultima atualização do ângulo
-    timerGiroscopy.stop();
     double time_seconds = (chrono::duration_cast<chrono::milliseconds>(timerGiroscopy.elapsed_time()).count())/1000;
 
     // atualiza deslocamento do angulo 
@@ -115,8 +114,8 @@ double readGiroscopy(int n_mean){
         _angle += 2*M_PI;
     }
 
-    // retorna a contagem do timer
-    timerGiroscopy.start();
+    // reseta a contagem do timer
+    timerGiroscopy.reset();
 
 }
 
