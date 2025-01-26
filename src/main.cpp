@@ -8,11 +8,11 @@
 
 # define M_PI 3.14159265358979323846	/* pi */
 
-Ticker tikerGiroscopy;\
+Ticker tikerGiroscopy;
 Timer timerGiroscopy;
 
 bool _canReadGiroscopy = false; // flag que controla a leitura do giroscópio
-int _periodToReadGiroscopy = 1000; // tempo entre leituras sucessivas do giroscópio
+int _periodToReadGiroscopy = 5; // tempo entre leituras sucessivas do giroscópio
 bool _activeIMU = false; // indica se a placa está ativa com sucesso
 
 // ******* EXTERNAL MPU 6050 ******
@@ -82,8 +82,8 @@ bool calibrateGiroscopy(int num_samples, int time_between_samples, double tresho
     }
 }
 
-double _DeltaAngle;
-double _angle;
+double _DeltaAngle = 0;
+double _angle = 0;
 
 // Realiza a leitura do giroscópio e atualiza:
 // velocidades: _Dangle (rad/s)
@@ -109,6 +109,11 @@ double readGiroscopy(int n_mean){
 
     // atualiza deslocamento do angulo 
     _angle += _DeltaAngle*time_seconds;
+    if(_angle > M_PI){
+        _angle -= 2*M_PI;
+    }else if (_angle < -M_PI){
+        _angle += 2*M_PI;
+    }
 
     // retorna a contagem do timer
     timerGiroscopy.start();
